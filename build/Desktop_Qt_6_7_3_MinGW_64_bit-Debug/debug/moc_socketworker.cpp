@@ -50,7 +50,6 @@ constexpr auto qt_meta_stringdata_CLASSSocketWorkerENDCLASS = QtMocHelpers::stri
     "ip",
     "port",
     "handleData",
-    "handleDataClient",
     "onDisconnected"
 );
 #else  // !QT_MOC_HAS_STRINGDATA
@@ -64,7 +63,7 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSSocketWorkerENDCLASS[] = {
       12,       // revision
        0,       // classname
        0,    0, // classinfo
-      10,   14, // methods
+       9,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -72,18 +71,17 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSSocketWorkerENDCLASS[] = {
        3,       // signalCount
 
  // signals: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    0,   74,    2, 0x06,    1 /* Public */,
-       3,    1,   75,    2, 0x06,    2 /* Public */,
-       5,    1,   78,    2, 0x06,    4 /* Public */,
+       1,    0,   68,    2, 0x06,    1 /* Public */,
+       3,    1,   69,    2, 0x06,    2 /* Public */,
+       5,    1,   72,    2, 0x06,    4 /* Public */,
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       6,    0,   81,    2, 0x0a,    6 /* Public */,
-       7,    1,   82,    2, 0x0a,    7 /* Public */,
-      10,    0,   85,    2, 0x0a,    9 /* Public */,
-      11,    2,   86,    2, 0x0a,   10 /* Public */,
-      14,    0,   91,    2, 0x08,   13 /* Private */,
-      15,    0,   92,    2, 0x08,   14 /* Private */,
-      16,    0,   93,    2, 0x08,   15 /* Private */,
+       6,    0,   75,    2, 0x0a,    6 /* Public */,
+       7,    1,   76,    2, 0x0a,    7 /* Public */,
+      10,    0,   79,    2, 0x0a,    9 /* Public */,
+      11,    2,   80,    2, 0x0a,   10 /* Public */,
+      14,    0,   85,    2, 0x08,   13 /* Private */,
+      15,    0,   86,    2, 0x08,   14 /* Private */,
 
  // signals: parameters
     QMetaType::Void,
@@ -95,7 +93,6 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSSocketWorkerENDCLASS[] = {
     QMetaType::Void, 0x80000000 | 8,    9,
     QMetaType::Void,
     QMetaType::Void, QMetaType::QString, QMetaType::UShort,   12,   13,
-    QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
 
@@ -132,8 +129,6 @@ Q_CONSTINIT const QMetaObject SocketWorker::staticMetaObject = { {
         QtPrivate::TypeAndForceComplete<quint16, std::false_type>,
         // method 'handleData'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        // method 'handleDataClient'
-        QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'onDisconnected'
         QtPrivate::TypeAndForceComplete<void, std::false_type>
     >,
@@ -154,8 +149,7 @@ void SocketWorker::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id
         case 5: _t->socketFromConnect(); break;
         case 6: _t->receiveIpPort((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<quint16>>(_a[2]))); break;
         case 7: _t->handleData(); break;
-        case 8: _t->handleDataClient(); break;
-        case 9: _t->onDisconnected(); break;
+        case 8: _t->onDisconnected(); break;
         default: ;
         }
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
@@ -214,13 +208,13 @@ int SocketWorker::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 10)
+        if (_id < 9)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 10;
+        _id -= 9;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 10)
+        if (_id < 9)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 10;
+        _id -= 9;
     }
     return _id;
 }

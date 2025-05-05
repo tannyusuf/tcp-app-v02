@@ -6,6 +6,23 @@
 #include <QThread>
 #include "connectionhandleui.h"
 #include <QCoreApplication>
+#include "GlobalConfig.h"
+
+enum class HandshakeState {
+    onHost_receivingHSK1,
+    onHost_sendingHSK2,
+    onClient_receivingHSK2,
+    onClient_sendingName,
+    onHost_receivingName,
+    onHost_sendingName,
+    onClient_receivingName,
+    onClient_sendingOK,
+    onHost_receivingOK, // emit connestab
+    onHost_sendingOK,
+    onClient_receivingOK, // emit connest
+    onHost_completed,
+    onClient_completed
+    };
 
 class SocketWorker : public QObject
 {
@@ -22,9 +39,13 @@ private:
     QTcpSocket* m_socket;
     QString m_ip;
     quint16 m_port;
+    QString m_name = GlobalConfig::username().getUsername();
+    QString m_clientName;
+    bool m_connectionReported = false;
 
-    bool m_hsk1Received;
-    bool m_hsk2Received;
+    HandshakeState m_state;
+
+
 
 
 
@@ -36,7 +57,7 @@ public slots:
     void receiveIpPort(QString ip, quint16 port);
 private slots:
     void handleData();
-    void handleDataClient();
+
     void onDisconnected();
 
 

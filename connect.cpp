@@ -52,6 +52,7 @@ Connect::Connect(QWidget *parent)
 
 
     connect(this, &Connect::btnDontListen_clicked, listener, &Listener::stopListening);
+    connect(this, &Connect::btnListen_clicked, listener, &Listener::startListening);
 
     // Cleanup connections
     connect(listenerTh, &QThread::finished,
@@ -162,11 +163,6 @@ void Connect::pinged()
 
 
 
-void Connect::on_btnDontListen_clicked()
-{
-    emit btnDontListen_clicked();
-}
-
 void Connect::tabCreatedSlot(connectionHandleUi *page)
 {
     emit tabCreatedSignal(page);
@@ -197,8 +193,7 @@ void Connect::on_btnConnect_clicked()
     socket->moveToThread(workerTh);
     worker->setSocket(socket);
 
-    //socket->connectToHost(ip, port);
-    //qDebug() << "host:" << socket->peerAddress().toString();
+
 
 
 
@@ -228,5 +223,22 @@ void Connect::on_btnConnect_clicked()
 
     workerTh->start();
 
+}
+
+
+void Connect::on_btnListen_clicked()
+{
+    emit btnListen_clicked();
+    ui->btnDontListen->setEnabled(true);
+    ui->btnListen->setEnabled(false);
+}
+
+
+
+void Connect::on_btnDontListen_clicked()
+{
+    emit btnDontListen_clicked();
+    ui->btnListen->setEnabled(true);
+    ui->btnDontListen->setEnabled(false);
 }
 

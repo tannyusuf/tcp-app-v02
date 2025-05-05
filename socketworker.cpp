@@ -30,9 +30,11 @@ void SocketWorker::setSocket(QTcpSocket *newSocket)
 
 void SocketWorker::startProcessing()
 {
+
+    m_state = HandshakeState::onHost_receivingHSK1;
     connect(m_socket, &QTcpSocket::disconnected, this, &SocketWorker::onDisconnected, Qt::DirectConnection);
 
-    m_hsk1Received = false;
+
     connect(m_socket, &QTcpSocket::readyRead,
             this, &SocketWorker::handleData,
             Qt::DirectConnection);
@@ -41,11 +43,13 @@ void SocketWorker::startProcessing()
     qDebug() << "(Worker) socket connected to:" << m_socket->peerAddress().toString() << m_socket->peerPort();
 
 
+
     m_ip = m_socket->peerAddress().toString();
     m_port = m_socket->peerPort();
-    //handleData();
+
+
     QString ipPort = QString("%1:%2").arg(m_ip).arg(m_port);
-    emit connectionEstablished(ipPort);
+
 }
 
 void SocketWorker::tabCreated(connectionHandleUi *page)
@@ -66,28 +70,28 @@ void SocketWorker::socketFromConnect()
     connect(m_socket, &QTcpSocket::disconnected, this, &SocketWorker::onDisconnected, Qt::DirectConnection);
 
     connect(m_socket, &QTcpSocket::readyRead,
-            this, &SocketWorker::handleDataClient,
+            this, &SocketWorker::handleData,
             Qt::DirectConnection);
     connect(m_socket, &QTcpSocket::connected, this, [this]() {
-        // Bağlantı kurulduktan sonra ipPort değerini al
+
         QString ipPort = QString("%1:%2").arg(m_ip).arg(m_port);
 
         qDebug() << "socket connected to(WorkerThread):" << ipPort;
 
-        emit connectionEstablished(ipPort);
 
-        /*qDebug() << "Connected to server, sending HSK1";
-        m_socket->write("HSK1");
-        m_hsk2Received = false;*/
+        m_state = HandshakeState::onClient_receivingHSK2;
+        m_socket->write("HSK1\n");
+        m_socket->flush();
+
     });
     connect(m_socket, &QTcpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError socketError) {
         qDebug() << "Connection error:" << m_socket->errorString();
-        // Buraya hata durumunda yapılması gereken işlemleri ekleyebilirsiniz
+        //errorhand
     });
 
-    // Bağlantı isteği gönder
+
     m_socket->connectToHost(m_ip, m_port);
-    //handleDataClient();
+
 }
 
 void SocketWorker::receiveIpPort(QString ip, quint16 port)
@@ -100,54 +104,137 @@ void SocketWorker::receiveIpPort(QString ip, quint16 port)
 
 void SocketWorker::handleData()
 {
-    /*QByteArray data = m_socket->readAll();
-    qDebug() << "Received:" << data;
-    QString ipPort = (QString("%1:%2").arg(m_ip)
-                          .arg(m_port));
 
-    if (!m_hsk1Received) {
-        if (data == "HSK1") {
-            m_socket->write("HSK2");
-            m_hsk1Received = true;
-            qDebug() << "Sent HSK2";
-        } else {
-            m_socket->disconnectFromHost();
-            qDebug() << "Invalid handshake, disconnecting";
+    //handshake
+    while (m_socket->canReadLine()) {
+        QString line = QString::fromUtf8(m_socket->readLine()).trimmed();
+        qDebug() << "Received:" << line;
+
+        switch (m_state) {
+        case HandshakeState::onHost_receivingHSK1:
+            if (line == "HSK1") {
+
+                m_state = HandshakeState::onHost_sendingHSK2;
+                qDebug() << "Server: Received HSK1";
+
+
+                m_socket->write("HSK2\n");
+                m_socket->flush();
+                m_state = HandshakeState::onHost_receivingName;
+                qDebug() << "Server: Sent HSK2";
+            }
+            else {
+                m_socket->write("ERR\n");
+                m_socket->flush();
+                m_socket->disconnectFromHost();
+                qDebug() << "Unexpected message in WaitingForHSK1:" << line;
+            }
+            break;
+
+
+
+        case HandshakeState::onClient_receivingHSK2:
+            if (line == "HSK2") {
+
+                m_state = HandshakeState::onClient_sendingName;
+                qDebug() << "Client: Received HSK2";
+
+
+                m_socket->write((m_name + "\n").toUtf8());
+                m_socket->flush();
+                m_state = HandshakeState::onClient_receivingName;
+                qDebug() << "Client: Sent name";
+            }
+            else {
+                m_socket->write("ERR\n");
+                m_socket->flush();
+                m_socket->disconnectFromHost();
+                qDebug() << "Unexpected message in WaitingForHSK2:" << line;
+            }
+            break;
+
+
+
+        case HandshakeState::onHost_receivingName:
+            m_clientName = line;
+            m_state = HandshakeState::onHost_sendingName;
+            qDebug() << "Server: Received name";
+
+            // İsmi hemen gönder
+            m_socket->write((m_name + "\n").toUtf8());
+            m_socket->flush();
+            m_state = HandshakeState::onHost_receivingOK;
+            qDebug() << "Server: Sent name";
+            break;
+
+
+
+        case HandshakeState::onClient_receivingName:
+            m_clientName = line;
+            m_state = HandshakeState::onClient_sendingOK;
+            qDebug() << "Client: Received name";
+
+            // OK'yi hemen gönder
+            m_socket->write("OK\n");
+            m_socket->flush();
+            m_state = HandshakeState::onClient_receivingOK;
+            qDebug() << "Client: Sent OK";
+            break;
+
+
+
+        case HandshakeState::onHost_receivingOK:
+            if (line == "OK") {
+
+                m_state = HandshakeState::onHost_sendingOK;
+                qDebug() << "Server: Received OK";
+
+
+                m_socket->write("OK\n");
+                m_socket->flush();
+                m_state = HandshakeState::onHost_completed;
+                qDebug() << "Server: Sent OK";
+
+                emit connectionEstablished(m_clientName);
+            }
+            else {
+                m_socket->write("ERR\n");
+                m_socket->flush();
+                m_socket->disconnectFromHost();
+                qDebug() << "Unexpected message in WaitingForOK:" << line;
+            }
+            break;
+
+
+
+        case HandshakeState::onClient_receivingOK:
+            if (line == "OK") {
+                // Client davranışı
+                m_state = HandshakeState::onClient_completed;
+                qDebug() << "Client: Received OK";
+                emit connectionEstablished(m_clientName);
+            }
+            else {
+                m_socket->write("ERR\n");
+                m_socket->flush();
+                m_socket->disconnectFromHost();
+                qDebug() << "Unexpected message in WaitingForOK:" << line;
+            }
+            break;
+
+        case HandshakeState::onHost_completed:
+        case HandshakeState::onClient_completed:
+
+            //emit messageReceived(m_clientName, line);
+            break;
+
+        default:
+            qDebug() << "Unknown state: " << static_cast<int>(m_state);
+            break;
         }
-    } else {
-        if (data == "OK") {
-            qDebug() << "Handshake completed successfully";
-            emit connectionEstablished(ipPort);
-            // Artık normal iletişime başlayabilirsiniz
-        } else {
-            m_socket->disconnectFromHost();
-            qDebug() << "Invalid final handshake, disconnecting";
-        }
-    }*/
+    }
 }
 
-void SocketWorker::handleDataClient()
-{
-    /*QByteArray data = m_socket->readAll();
-    qDebug() << "Received:" << data;
-
-    if (!m_hsk2Received) {
-        if (data == "HSK2") {
-            qDebug() << "Sending OK";
-            m_socket->write("OK");
-            m_hsk2Received = true;
-            qDebug() << "Handshake completed successfully";
-            QString ipPort = QString("%1:%2").arg(m_ip).arg(m_port);
-            emit connectionEstablished(ipPort);
-            // Artık normal iletişime başlayabilirsiniz
-        } else {
-            m_socket->disconnectFromHost();
-            qDebug() << "Invalid handshake response, disconnecting";
-        }
-    } else {
-        // Normal mesajları işle
-    }*/
-}
 
 void SocketWorker::onDisconnected()
 {
@@ -156,11 +243,11 @@ void SocketWorker::onDisconnected()
         return;
     }
 
-    // Capture information before any operations that might affect the socket
+
     QString ip = m_socket->peerAddress().toString();
     QString ipPort = QString("%1:%2").arg(ip).arg(m_socket->peerPort());
 
-    // Disconnect all signals from the socket
+
     disconnect(m_socket, nullptr, this, nullptr);
 
     if (m_socket->state() != QAbstractSocket::UnconnectedState) {
@@ -170,11 +257,11 @@ void SocketWorker::onDisconnected()
         }
     }
 
-    // Schedule deletion
+
     m_socket->deleteLater();
     m_socket = nullptr;
 
-    emit connectionClosed(ipPort);
+    emit connectionClosed(m_clientName);
 
     qDebug() << QThread::currentThread() << "The client Disconnected ipport:" << ipPort;
 }

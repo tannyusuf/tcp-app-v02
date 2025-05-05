@@ -17,9 +17,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(connPage, &Connect::connectionEstablished, [this](QString ipPort) {
         // Add new tab
-        connectionHandleUi* page = new connectionHandleUi();
-        ui->tabWdg->addTab(page, ipPort);  // Removed tabIndex variable since it's unused
-        emit tabCreated(page);
+
+        if(askUserToConfirmConnection(ipPort)){
+            connectionHandleUi* page = new connectionHandleUi();
+            ui->tabWdg->addTab(page, ipPort);  // Removed tabIndex variable since it's unused
+            emit tabCreated(page);
+        }
+
     });
 
 
@@ -64,21 +68,35 @@ QString MainWindow::getUserInput(QWidget *parent)
                                              QLineEdit::Normal,
                                              "", &ok);
         if (!ok) {
-            // Kullanıcı Cancel'a veya X'e bastı
-
-            break;  // Bu satır aslında çalışmayacak, ama güvenlik için bırakılabilir
+            QTimer::singleShot(0, [](){
+                qApp->quit();
+            });
+            return "";
         }
 
         if (!text.trimmed().isEmpty()) {
             return text.trimmed();  // Geçerli giriş
         }
 
-        // Boş bırakıldıysa uyarı ver
+
         QMessageBox::warning(parent, "Uyarı", "Boş giriş yapılamaz. Lütfen bir değer girin.");
     }
-    QApplication::quit();  // Uygulamayı kapat
-    //return "";
+    //QApplication::quit();
+
 }
+
+bool MainWindow::askUserToConfirmConnection(QString ipPort, QWidget *parent)
+{
+    QMessageBox::StandardButton reply = QMessageBox::question(parent,
+                                                              "Confirm Connection",
+                                                              "New connection established with " +
+                                                              ipPort + "\nDo you confirm?",
+                                                              QMessageBox::Yes | QMessageBox::No);
+
+    return reply == QMessageBox::Yes;
+}
+
+
 
 
 

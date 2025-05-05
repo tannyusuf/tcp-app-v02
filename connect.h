@@ -71,6 +71,8 @@ private slots:
 
     void on_btnConnect_clicked();
 
+    void on_btnListen_clicked();
+
 public slots:
 
     void tabCreatedSlot(connectionHandleUi* page);
@@ -80,6 +82,7 @@ signals:
     void connectionEstablished(QString ipPort);
     void deleteTab(QString ipPort);
     void btnDontListen_clicked();
+    void btnListen_clicked();
     void tabCreatedSignal(connectionHandleUi* page);
     void sendIpPortToWorker(QString ip, quint16 port);
 

@@ -2,9 +2,9 @@
 
 Listener::Listener(QObject *parent)
     : QObject(parent),
-    m_server(nullptr) // Initialize as nullptr
+    m_server(nullptr)
 {
-    // Don't connect signals here - wait until in correct thread
+
 }
 
 
@@ -20,7 +20,7 @@ void Listener::startListening()
 {
     Q_ASSERT(QThread::currentThread() == this->thread());
 
-    m_server = new QTcpServer(this); // Now created in listener thread
+    m_server = new QTcpServer(this);
 
     connect(m_server, &QTcpServer::newConnection,
             this, &Listener::onNewConnection);

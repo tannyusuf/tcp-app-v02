@@ -7,6 +7,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QApplication>
+#include <QMessageBox>
 #include "connect.h"
 #include "connectionhandleui.h"
 #include "GlobalConfig.h"
@@ -32,6 +33,7 @@ private:
 
     void removeTabByName(QTabWidget* tabWidget, const QString& tabName);
     QString getUserInput(QWidget* parent = nullptr);
+    bool askUserToConfirmConnection(QString ipPort ,QWidget* parent = nullptr);
 
 
 private:
