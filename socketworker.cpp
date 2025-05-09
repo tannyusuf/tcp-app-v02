@@ -60,8 +60,30 @@ void SocketWorker::tabCreated(connectionHandleUi *page)
             this, &SocketWorker::onDisconnected, Qt::QueuedConnection);
 
     //////file-transfer eklenecek.
+    ///
+    /// // Dosya transferi bağlantıları
+    connect(page, &connectionHandleUi::sendFileRequested,
+            this, &SocketWorker::sendFile, Qt::QueuedConnection);
+    connect(page, &connectionHandleUi::cancelFileTransferRequested,
+            this, &SocketWorker::cancelFileTransfer, Qt::QueuedConnection);
+
+    connect(this, &SocketWorker::fileTransferProgress,
+            page, &connectionHandleUi::onFileTransferProgress, Qt::QueuedConnection);
+    connect(this, &SocketWorker::fileReceiveProgress,
+            page, &connectionHandleUi::onFileReceiveProgress, Qt::QueuedConnection);
+    connect(this, &SocketWorker::fileReceived,
+            page, &connectionHandleUi::onFileReceived, Qt::QueuedConnection);
+    connect(this, &SocketWorker::fileSent,
+            page, &connectionHandleUi::onFileSent, Qt::QueuedConnection);
+    connect(this, &SocketWorker::fileTransferError,
+            page, &connectionHandleUi::onFileTransferError, Qt::QueuedConnection);
 
 
+}
+
+void SocketWorker::disconnectRequestFromMain(QString ipPort)
+{
+    onDisconnected();
 }
 
 void SocketWorker::socketFromConnect()
@@ -100,11 +122,102 @@ void SocketWorker::receiveIpPort(QString ip, quint16 port)
     m_port = port;
 }
 
+void SocketWorker::sendFile(const QString &filePath)
+{
+    // Bağlantı durumunu kontrol et
+    if (!m_socket || m_socket->state() != QAbstractSocket::ConnectedState) {
+        emit fileTransferError("Bağlantı yok");
+        return;
+    }
+
+    // Handshake tamamlanmış mı kontrol et
+    if (m_state != HandshakeState::onHost_completed &&
+        m_state != HandshakeState::onClient_completed) {
+        emit fileTransferError("Bağlantı henüz hazır değil");
+        return;
+    }
+
+    // Dosya açma
+    m_outgoingFile.setFileName(filePath);
+    if (!m_outgoingFile.open(QIODevice::ReadOnly)) {
+        emit fileTransferError("Dosya açılamadı: " + filePath);
+        return;
+    }
+
+    m_fileSize = m_outgoingFile.size();
+    m_sendingFile = true;
+
+    // Dosya adını ve boyutunu gönder
+    QFileInfo fileInfo(filePath);
+    QString fileName = fileInfo.fileName();
+
+    // FILE_BEGIN komutu, ardından dosya adı ve boyutu
+    QString fileHeader = QString("FILE_BEGIN:%1:%2\n").arg(fileName).arg(m_fileSize);
+    m_socket->write(fileHeader.toUtf8());
+    m_socket->flush();
+
+    // Dosya içeriğini okuma ve gönderme
+    sendFileChunk();
+}
+
+void SocketWorker::cancelFileTransfer()
+{
+    if (m_sendingFile) {
+        m_socket->write("FILE_CANCEL\n");
+        m_socket->flush();
+        m_outgoingFile.close();
+        m_sendingFile = false;
+    }
+
+    if (m_receivingFile) {
+        m_incomingFile.close();
+        m_receivingFile = false;
+        m_bytesReceived = 0;
+    }
+}
+
+void SocketWorker::sendFileChunk()
+{
+    // Dosya gönderimi devam ediyor mu?
+    if (!m_sendingFile || !m_socket) {
+        return;
+    }
+
+    // Buffer boyutu
+    const qint64 chunkSize = 4096; // 4KB chunk boyutu
+
+    // Buffer'a dosyadan veri oku
+    QByteArray buffer = m_outgoingFile.read(chunkSize);
+
+    if (buffer.isEmpty()) {
+        // Dosya sonuna ulaşıldı, transfer tamamlandı
+        m_socket->write("FILE_END\n");
+        m_socket->flush();
+        m_outgoingFile.close();
+        m_sendingFile = false;
+        emit fileSent();
+        return;
+    }
+
+    // FILE_DATA komutunu gönder, ardından buffer boyutu ve veri
+    QByteArray header = QString("FILE_DATA:%1\n").arg(buffer.size()).toUtf8();
+    m_socket->write(header);
+    m_socket->write(buffer);
+    m_socket->flush();
+
+    // Dosya gönderim durumunu güncelle
+    qint64 bytesSent = m_outgoingFile.pos();
+    emit fileTransferProgress(bytesSent, m_fileSize);
+
+    // Eğer hala gönderecek veri varsa, bir sonraki parçayı göndermek için
+    // QTimer kullanarak kuyruk oluşturma
+    QTimer::singleShot(0, this, &SocketWorker::sendFileChunk);
+}
+
 
 
 void SocketWorker::handleData()
 {
-
     //handshake
     while (m_socket->canReadLine()) {
         QString line = QString::fromUtf8(m_socket->readLine()).trimmed();
@@ -113,10 +226,8 @@ void SocketWorker::handleData()
         switch (m_state) {
         case HandshakeState::onHost_receivingHSK1:
             if (line == "HSK1") {
-
                 m_state = HandshakeState::onHost_sendingHSK2;
                 qDebug() << "Server: Received HSK1";
-
 
                 m_socket->write("HSK2\n");
                 m_socket->flush();
@@ -131,14 +242,10 @@ void SocketWorker::handleData()
             }
             break;
 
-
-
         case HandshakeState::onClient_receivingHSK2:
             if (line == "HSK2") {
-
                 m_state = HandshakeState::onClient_sendingName;
                 qDebug() << "Client: Received HSK2";
-
 
                 m_socket->write((m_name + "\n").toUtf8());
                 m_socket->flush();
@@ -153,8 +260,6 @@ void SocketWorker::handleData()
             }
             break;
 
-
-
         case HandshakeState::onHost_receivingName:
             m_clientName = line;
             m_state = HandshakeState::onHost_sendingName;
@@ -166,8 +271,6 @@ void SocketWorker::handleData()
             m_state = HandshakeState::onHost_receivingOK;
             qDebug() << "Server: Sent name";
             break;
-
-
 
         case HandshakeState::onClient_receivingName:
             m_clientName = line;
@@ -181,14 +284,10 @@ void SocketWorker::handleData()
             qDebug() << "Client: Sent OK";
             break;
 
-
-
         case HandshakeState::onHost_receivingOK:
             if (line == "OK") {
-
                 m_state = HandshakeState::onHost_sendingOK;
                 qDebug() << "Server: Received OK";
-
 
                 m_socket->write("OK\n");
                 m_socket->flush();
@@ -205,14 +304,13 @@ void SocketWorker::handleData()
             }
             break;
 
-
-
         case HandshakeState::onClient_receivingOK:
             if (line == "OK") {
                 // Client davranışı
                 m_state = HandshakeState::onClient_completed;
                 qDebug() << "Client: Received OK";
                 emit connectionEstablished(m_clientName);
+                emit connectionEstablishedFromConnect(m_clientName);
             }
             else {
                 m_socket->write("ERR\n");
@@ -224,8 +322,108 @@ void SocketWorker::handleData()
 
         case HandshakeState::onHost_completed:
         case HandshakeState::onClient_completed:
+            // Dosya transferi komutları kontrolü
+            if (line.startsWith("FILE_BEGIN:")) {
+                // Yeni bir dosya transferi başlıyor
+                QStringList parts = line.split(":");
+                if (parts.size() >= 3) {
+                    m_currentFileName = parts[1];
+                    m_fileSize = parts[2].toLongLong();
+                    m_bytesReceived = 0;
+                    m_receivingFile = true;
 
-            //emit messageReceived(m_clientName, line);
+                    // Dosya yolunu doğru şekilde oluştur
+                    QString filePath = m_fileReceiveDir + "/" + m_currentFileName;
+                    m_incomingFile.setFileName(filePath);
+
+                    if (!m_incomingFile.open(QIODevice::WriteOnly)) {
+                        m_socket->write("FILE_ERROR:Dosya oluşturulamadı\n");
+                        m_socket->flush();
+                        m_receivingFile = false;
+                    }
+                    else {
+                        m_socket->write("FILE_READY\n");
+                        m_socket->flush();
+                    }
+                }
+            }
+            else if (line.startsWith("FILE_DATA:")) {
+                if (m_receivingFile) {
+                    // Veri parçası geliyor
+                    QStringList parts = line.split(":");
+                    if (parts.size() >= 2) {
+                        int dataSize = parts[1].toInt();
+
+                        // Veriyi oku
+                        QByteArray buffer = m_socket->read(dataSize);
+                        while (buffer.size() < dataSize && m_socket->waitForReadyRead(1000)) {
+                            buffer.append(m_socket->read(dataSize - buffer.size()));
+                        }
+
+                        // Dosyaya yaz
+                        if (buffer.size() == dataSize) {
+                            m_incomingFile.write(buffer);
+                            m_bytesReceived += buffer.size();
+                            emit fileReceiveProgress(m_bytesReceived, m_fileSize);
+                        }
+                        else {
+                            // Veri eksik
+                            m_socket->write("FILE_ERROR:Eksik veri\n");
+                            m_socket->flush();
+                            m_incomingFile.close();
+                            m_receivingFile = false;
+                        }
+                    }
+                }
+            }
+            else if (line == "FILE_END") {
+                if (m_receivingFile) {
+                    // Dosya transferi tamamlandı
+                    m_incomingFile.close();
+                    m_receivingFile = false;
+                    emit fileReceived(m_incomingFile.fileName());
+                    m_socket->write("FILE_COMPLETE\n");
+                    m_socket->flush();
+                }
+            }
+            else if (line.startsWith("FILE_ERROR:")) {
+                // Karşı taraftan bir hata geldi
+                QString errorMsg = line.mid(11);
+                emit fileTransferError(errorMsg);
+                if (m_sendingFile) {
+                    m_outgoingFile.close();
+                    m_sendingFile = false;
+                }
+            }
+            else if (line == "FILE_CANCEL") {
+                // Transfer iptal edildi
+                if (m_receivingFile) {
+                    m_incomingFile.close();
+                    m_receivingFile = false;
+                }
+                if (m_sendingFile) {
+                    m_outgoingFile.close();
+                    m_sendingFile = false;
+                }
+            }
+            else if (line == "FILE_READY") {
+                // Karşı taraf dosya almaya hazır
+                if (m_sendingFile) {
+                    sendFileChunk();
+                }
+            }
+            else if (line == "FILE_COMPLETE") {
+                // Dosya başarıyla gönderildi
+                if (m_sendingFile) {
+                    m_outgoingFile.close();
+                    m_sendingFile = false;
+                    emit fileSent();
+                }
+            }
+            else {
+                // Normal metin mesajı
+                emit messageReceived(m_clientName, line);
+            }
             break;
 
         default:

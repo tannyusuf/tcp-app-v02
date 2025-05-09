@@ -24,7 +24,23 @@ MainWindow::MainWindow(QWidget *parent)
             emit tabCreated(page);
         }
 
+        else{
+            emit disconnect(ipPort);
+            connect(this, &MainWindow::disconnect, connPage, &Connect::disconnectRequestedFromMain);
+        }
+
     });
+
+    connect(connPage, &Connect::connectionEstablishedFromConnect, [this](QString ipPort) {
+        // Add new tab
+
+        connectionHandleUi* page = new connectionHandleUi();
+        ui->tabWdg->addTab(page, ipPort);  // Removed tabIndex variable since it's unused
+        emit tabCreated(page);
+
+    });
+
+
 
 
     connect(this, &MainWindow::tabCreated, connPage, &Connect::tabCreatedSlot);

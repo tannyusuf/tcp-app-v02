@@ -47,6 +47,7 @@ private slots:
 
 signals:
     void tabCreated(connectionHandleUi* page);
+    void disconnect(QString ipPort);
 
 };
 #endif // MAINWINDOW_H

@@ -73,6 +73,8 @@ Connect::Connect(QWidget *parent)
                 emit deleteTab(ipPort);
             });
 
+    connect(this, &Connect::disconnectRequestedFromMainSignal, listener, &Listener::disconnectRequestedFromMain);
+
     listenerTh->start();
     qDebug() << QThread::currentThread() << ": Listener Started";
 }
@@ -168,6 +170,11 @@ void Connect::tabCreatedSlot(connectionHandleUi *page)
     emit tabCreatedSignal(page);
 }
 
+void Connect::disconnectRequestedFromMain(QString ipPort)
+{
+    emit disconnectRequestedFromMainSignal(ipPort);
+}
+
 
 void Connect::on_btnConnect_clicked()
 {
@@ -207,9 +214,9 @@ void Connect::on_btnConnect_clicked()
             worker, &SocketWorker::socketFromConnect);
 
 
-    connect(worker, &SocketWorker::connectionEstablished,
+    connect(worker, &SocketWorker::connectionEstablishedFromConnect,
             this, [=](QString ipPort){
-                emit connectionEstablished(ipPort);
+                emit connectionEstablishedFromConnect(ipPort);
                 //qDebug() << "connected:" << ipPort;
             });
 

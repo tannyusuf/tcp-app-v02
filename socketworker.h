@@ -4,6 +4,9 @@
 #include <QObject>
 #include <QTcpSocket>
 #include <QThread>
+#include <QFile>
+#include <QTimer>
+#include <QDir>
 #include "connectionhandleui.h"
 #include <QCoreApplication>
 #include "GlobalConfig.h"
@@ -45,6 +48,18 @@ private:
 
     HandshakeState m_state;
 
+    // Dosya transferi için gerekli değişkenler
+    QFile m_incomingFile;
+    QFile m_outgoingFile;
+    qint64 m_fileSize;
+    qint64 m_bytesReceived;
+    QString m_currentFileName;
+    bool m_receivingFile = false;
+    bool m_sendingFile = false;
+    QByteArray m_fileBuffer;
+
+    QString m_fileReceiveDir = QDir::homePath() + "/Downloads";
+
 
 
 
@@ -52,13 +67,21 @@ private:
 public slots:
     void startProcessing();
     void tabCreated(connectionHandleUi* page);
+    void disconnectRequestFromMain(QString ipPort);
+
 
     void socketFromConnect();
     void receiveIpPort(QString ip, quint16 port);
+
+    // Dosya transferi için yeni slotlar
+    void sendFile(const QString &filePath);
+    void cancelFileTransfer();
+    void sendFileChunk();
 private slots:
     void handleData();
-
     void onDisconnected();
+
+
 
 
 signals:
@@ -66,7 +89,17 @@ signals:
 
     //add tab
     void connectionEstablished(QString ipPort);
+    void connectionEstablishedFromConnect(QString ipPort);
+
     void connectionClosed(QString ipPort);
+
+    void messageReceived(const QString &sender, const QString &message);
+    // Dosya transferi için yeni sinyaller
+    void fileTransferProgress(qint64 bytesSent, qint64 bytesTotal);
+    void fileReceiveProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void fileReceived(const QString &filePath);
+    void fileSent();
+    void fileTransferError(const QString &errorMessage);
 };
 
 #endif // SOCKETWORKER_H

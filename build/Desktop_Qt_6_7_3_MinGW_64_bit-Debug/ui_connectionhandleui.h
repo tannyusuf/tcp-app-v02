@@ -39,6 +39,7 @@ public:
     QGridLayout *gridLayout_3;
     QProgressBar *lblSendingBar;
     QLabel *lblSending;
+    QPushButton *pushButton;
     QVBoxLayout *verticalLayout;
     QVBoxLayout *verticalLayout_3;
     QLabel *lblOutput;
@@ -111,6 +112,11 @@ public:
 
         gridLayout_3->addWidget(lblSending, 0, 0, 1, 1);
 
+        pushButton = new QPushButton(layoutWidget);
+        pushButton->setObjectName("pushButton");
+
+        gridLayout_3->addWidget(pushButton, 0, 2, 1, 1);
+
 
         verticalLayout_2->addLayout(gridLayout_3);
 
@@ -150,6 +156,7 @@ public:
         btnSendFile->setText(QCoreApplication::translate("connectionHandleUi", "Send", nullptr));
         btnDisconnect->setText(QCoreApplication::translate("connectionHandleUi", "Disconnect", nullptr));
         lblSending->setText(QCoreApplication::translate("connectionHandleUi", "Sending File ...", nullptr));
+        pushButton->setText(QCoreApplication::translate("connectionHandleUi", "Cancel", nullptr));
         lblOutput->setText(QCoreApplication::translate("connectionHandleUi", "Connection Output", nullptr));
     } // retranslateUi
 

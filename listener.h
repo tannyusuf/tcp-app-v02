@@ -23,6 +23,7 @@ private:
 
 signals:
     void connectionEstablished(QString ipPort);
+    void disconnectRequestedFromMainSignal(QString ipPort);
 
     void tabCreatedSignal(connectionHandleUi* page);
     void deleteTab(QString ipPort);
@@ -33,6 +34,7 @@ public slots:
     void stopListening();
 
     void tabCreatedSlot(connectionHandleUi* page);
+    void disconnectRequestedFromMain(QString ipPort);
 
 private slots:
     void onNewConnection();

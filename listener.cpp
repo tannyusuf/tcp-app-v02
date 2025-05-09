@@ -49,6 +49,11 @@ void Listener::tabCreatedSlot(connectionHandleUi *page)
     emit tabCreatedSignal(page);
 }
 
+void Listener::disconnectRequestedFromMain(QString ipPort)
+{
+    emit disconnectRequestedFromMainSignal(ipPort);
+}
+
 
 void Listener::onNewConnection()
 {
@@ -92,6 +97,8 @@ void Listener::onNewConnection()
                 this, [=](QString ipPort){
                     emit deleteTab(ipPort);
                 });
+
+        connect(this, &Listener::disconnectRequestedFromMainSignal, worker, &SocketWorker::disconnectRequestFromMain);
 
         workerTh->start();
 
