@@ -39,7 +39,7 @@ constexpr auto qt_meta_stringdata_CLASSConnectENDCLASS = QtMocHelpers::stringDat
     "Connect",
     "connectionEstablished",
     "",
-    "ipPort",
+    "clientName",
     "connectionEstablishedFromConnect",
     "disconnectRequestedFromMainSignal",
     "deleteTab",

@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QDateTime>
 #include <QFileDialog>
+#include <QMessageBox>
 
 
 namespace Ui { class connectionHandleUi; }
@@ -25,12 +26,17 @@ private slots:
 
     void on_pushButton_clicked();
 
+
+
 public slots:
     void onFileTransferProgress(qint64 bytesSent, qint64 bytesTotal);
     void onFileReceiveProgress(qint64 bytesReceived, qint64 bytesTotal);
     void onFileReceived(const QString &filePath);
     void onFileSent();
     void onFileTransferError(const QString &errorMessage);
+
+    void on_btnCancel_clicked();
+
 
 private:
     Ui::connectionHandleUi *ui;
@@ -42,12 +48,15 @@ private:
     QString timePrefix;
 
     void outputMessage(QString outputMessageParam);
+    void setFileTransferButtonsVisibleForSending(qint64 bytesSent, qint64 bytesTotal);
+    void setFileTransferButtonsVisibleForReceiving(qint64 bytesReceived, qint64 bytesTotal);
 
 signals:
     void disconnectBtnClicked();
 
     void sendFileRequested(const QString &filePath);
     void cancelFileTransferRequested();
+
 
 };
 

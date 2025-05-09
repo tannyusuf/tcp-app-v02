@@ -37,9 +37,9 @@ public:
     QVBoxLayout *verticalLayout_4;
     QPushButton *btnDisconnect;
     QGridLayout *gridLayout_3;
+    QPushButton *btnCancel;
     QProgressBar *lblSendingBar;
     QLabel *lblSending;
-    QPushButton *pushButton;
     QVBoxLayout *verticalLayout;
     QVBoxLayout *verticalLayout_3;
     QLabel *lblOutput;
@@ -101,6 +101,11 @@ public:
         gridLayout_3 = new QGridLayout();
         gridLayout_3->setObjectName("gridLayout_3");
         gridLayout_3->setContentsMargins(-1, -1, 19, -1);
+        btnCancel = new QPushButton(layoutWidget);
+        btnCancel->setObjectName("btnCancel");
+
+        gridLayout_3->addWidget(btnCancel, 0, 2, 1, 1);
+
         lblSendingBar = new QProgressBar(layoutWidget);
         lblSendingBar->setObjectName("lblSendingBar");
         lblSendingBar->setValue(0);
@@ -111,11 +116,6 @@ public:
         lblSending->setObjectName("lblSending");
 
         gridLayout_3->addWidget(lblSending, 0, 0, 1, 1);
-
-        pushButton = new QPushButton(layoutWidget);
-        pushButton->setObjectName("pushButton");
-
-        gridLayout_3->addWidget(pushButton, 0, 2, 1, 1);
 
 
         verticalLayout_2->addLayout(gridLayout_3);
@@ -155,8 +155,8 @@ public:
         btnSelectFile->setText(QCoreApplication::translate("connectionHandleUi", "Select File", nullptr));
         btnSendFile->setText(QCoreApplication::translate("connectionHandleUi", "Send", nullptr));
         btnDisconnect->setText(QCoreApplication::translate("connectionHandleUi", "Disconnect", nullptr));
+        btnCancel->setText(QCoreApplication::translate("connectionHandleUi", "Cancel", nullptr));
         lblSending->setText(QCoreApplication::translate("connectionHandleUi", "Sending File ...", nullptr));
-        pushButton->setText(QCoreApplication::translate("connectionHandleUi", "Cancel", nullptr));
         lblOutput->setText(QCoreApplication::translate("connectionHandleUi", "Connection Output", nullptr));
     } // retranslateUi
 

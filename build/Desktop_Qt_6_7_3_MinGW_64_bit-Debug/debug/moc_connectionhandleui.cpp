@@ -53,7 +53,8 @@ constexpr auto qt_meta_stringdata_CLASSconnectionHandleUiENDCLASS = QtMocHelpers
     "onFileReceived",
     "onFileSent",
     "onFileTransferError",
-    "errorMessage"
+    "errorMessage",
+    "on_btnCancel_clicked"
 );
 #else  // !QT_MOC_HAS_STRINGDATA
 #error "qtmochelpers.h not found or too old."
@@ -66,7 +67,7 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSconnectionHandleUiENDCLASS[] = {
       12,       // revision
        0,       // classname
        0,    0, // classinfo
-      12,   14, // methods
+      13,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -74,20 +75,21 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSconnectionHandleUiENDCLASS[] = {
        3,       // signalCount
 
  // signals: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    0,   86,    2, 0x06,    1 /* Public */,
-       3,    1,   87,    2, 0x06,    2 /* Public */,
-       5,    0,   90,    2, 0x06,    4 /* Public */,
+       1,    0,   92,    2, 0x06,    1 /* Public */,
+       3,    1,   93,    2, 0x06,    2 /* Public */,
+       5,    0,   96,    2, 0x06,    4 /* Public */,
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       6,    0,   91,    2, 0x08,    5 /* Private */,
-       7,    0,   92,    2, 0x08,    6 /* Private */,
-       8,    0,   93,    2, 0x08,    7 /* Private */,
-       9,    0,   94,    2, 0x08,    8 /* Private */,
-      10,    2,   95,    2, 0x0a,    9 /* Public */,
-      13,    2,  100,    2, 0x0a,   12 /* Public */,
-      15,    1,  105,    2, 0x0a,   15 /* Public */,
-      16,    0,  108,    2, 0x0a,   17 /* Public */,
-      17,    1,  109,    2, 0x0a,   18 /* Public */,
+       6,    0,   97,    2, 0x08,    5 /* Private */,
+       7,    0,   98,    2, 0x08,    6 /* Private */,
+       8,    0,   99,    2, 0x08,    7 /* Private */,
+       9,    0,  100,    2, 0x08,    8 /* Private */,
+      10,    2,  101,    2, 0x0a,    9 /* Public */,
+      13,    2,  106,    2, 0x0a,   12 /* Public */,
+      15,    1,  111,    2, 0x0a,   15 /* Public */,
+      16,    0,  114,    2, 0x0a,   17 /* Public */,
+      17,    1,  115,    2, 0x0a,   18 /* Public */,
+      19,    0,  118,    2, 0x0a,   20 /* Public */,
 
  // signals: parameters
     QMetaType::Void,
@@ -104,6 +106,7 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSconnectionHandleUiENDCLASS[] = {
     QMetaType::Void, QMetaType::QString,    4,
     QMetaType::Void,
     QMetaType::Void, QMetaType::QString,   18,
+    QMetaType::Void,
 
        0        // eod
 };
@@ -147,7 +150,9 @@ Q_CONSTINIT const QMetaObject connectionHandleUi::staticMetaObject = { {
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'onFileTransferError'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        QtPrivate::TypeAndForceComplete<const QString &, std::false_type>
+        QtPrivate::TypeAndForceComplete<const QString &, std::false_type>,
+        // method 'on_btnCancel_clicked'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>
     >,
     nullptr
 } };
@@ -170,6 +175,7 @@ void connectionHandleUi::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
         case 9: _t->onFileReceived((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 10: _t->onFileSent(); break;
         case 11: _t->onFileTransferError((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 12: _t->on_btnCancel_clicked(); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
@@ -217,13 +223,13 @@ int connectionHandleUi::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 12)
+        if (_id < 13)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 12;
+        _id -= 13;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 12)
+        if (_id < 13)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 12;
+        _id -= 13;
     }
     return _id;
 }

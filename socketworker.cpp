@@ -66,6 +66,7 @@ void SocketWorker::tabCreated(connectionHandleUi *page)
             this, &SocketWorker::sendFile, Qt::QueuedConnection);
     connect(page, &connectionHandleUi::cancelFileTransferRequested,
             this, &SocketWorker::cancelFileTransfer, Qt::QueuedConnection);
+    connect(this, &SocketWorker::transferCancelledFromClient, page, &connectionHandleUi::on_btnCancel_clicked, Qt::QueuedConnection);
 
     connect(this, &SocketWorker::fileTransferProgress,
             page, &connectionHandleUi::onFileTransferProgress, Qt::QueuedConnection);
@@ -79,9 +80,12 @@ void SocketWorker::tabCreated(connectionHandleUi *page)
             page, &connectionHandleUi::onFileTransferError, Qt::QueuedConnection);
 
 
+
+
+
 }
 
-void SocketWorker::disconnectRequestFromMain(QString ipPort)
+void SocketWorker::disconnectRequestFromMain(QString clientName)
 {
     onDisconnected();
 }
@@ -332,8 +336,28 @@ void SocketWorker::handleData()
                     m_bytesReceived = 0;
                     m_receivingFile = true;
 
+
+
                     // Dosya yolunu doğru şekilde oluştur
-                    QString filePath = m_fileReceiveDir + "/" + m_currentFileName;
+                    QString fileName = m_currentFileName;
+                    QString baseName = QFileInfo(fileName).completeBaseName();
+                    QString suffix = QFileInfo(fileName).suffix();
+                    QString filePath = m_fileReceiveDir + "/" + fileName;
+
+                    // Eğer aynı isimde dosya varsa, ismin sonuna (1), (2), ... ekle
+                    int counter = 1;
+                    while (QFile::exists(filePath)) {
+                        if (suffix.isEmpty()) {
+                            fileName = QString("%1 (%2)").arg(baseName).arg(counter);
+                        } else {
+                            fileName = QString("%1 (%2).%3").arg(baseName).arg(counter).arg(suffix);
+                        }
+                        filePath = m_fileReceiveDir + "/" + fileName;
+                        counter++;
+                    }
+
+                    // Güncellenmiş dosya adını kaydet ve dosyayı ayarla
+                    m_currentFileName = fileName;
                     m_incomingFile.setFileName(filePath);
 
                     if (!m_incomingFile.open(QIODevice::WriteOnly)) {
@@ -400,10 +424,13 @@ void SocketWorker::handleData()
                 if (m_receivingFile) {
                     m_incomingFile.close();
                     m_receivingFile = false;
+                    emit transferCancelledFromClient();
+
                 }
                 if (m_sendingFile) {
                     m_outgoingFile.close();
                     m_sendingFile = false;
+                    emit transferCancelledFromClient();
                 }
             }
             else if (line == "FILE_READY") {
@@ -463,5 +490,6 @@ void SocketWorker::onDisconnected()
 
     qDebug() << QThread::currentThread() << "The client Disconnected ipport:" << ipPort;
 }
+
 
 

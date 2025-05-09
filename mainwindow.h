@@ -33,7 +33,7 @@ private:
 
     void removeTabByName(QTabWidget* tabWidget, const QString& tabName);
     QString getUserInput(QWidget* parent = nullptr);
-    bool askUserToConfirmConnection(QString ipPort ,QWidget* parent = nullptr);
+    bool askUserToConfirmConnection(QString clientName ,QWidget* parent = nullptr);
 
 
 private:
@@ -47,7 +47,7 @@ private slots:
 
 signals:
     void tabCreated(connectionHandleUi* page);
-    void disconnect(QString ipPort);
+    void disconnect(QString clientName);
 
 };
 #endif // MAINWINDOW_H

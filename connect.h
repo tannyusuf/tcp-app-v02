@@ -76,15 +76,15 @@ private slots:
 public slots:
 
     void tabCreatedSlot(connectionHandleUi* page);
-    void disconnectRequestedFromMain(QString ipPort);
+    void disconnectRequestedFromMain(QString clientName);
 
 
 signals:
 
-    void connectionEstablished(QString ipPort);
-    void connectionEstablishedFromConnect(QString ipPort);
-    void disconnectRequestedFromMainSignal(QString ipPort);
-    void deleteTab(QString ipPort);
+    void connectionEstablished(QString clientName);
+    void connectionEstablishedFromConnect(QString clientName);
+    void disconnectRequestedFromMainSignal(QString clientName);
+    void deleteTab(QString clientName);
     void btnDontListen_clicked();
     void btnListen_clicked();
     void tabCreatedSignal(connectionHandleUi* page);

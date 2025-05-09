@@ -67,7 +67,7 @@ private:
 public slots:
     void startProcessing();
     void tabCreated(connectionHandleUi* page);
-    void disconnectRequestFromMain(QString ipPort);
+    void disconnectRequestFromMain(QString clientName);
 
 
     void socketFromConnect();
@@ -84,14 +84,20 @@ private slots:
 
 
 
+
+
 signals:
     void finished();
 
     //add tab
-    void connectionEstablished(QString ipPort);
-    void connectionEstablishedFromConnect(QString ipPort);
+    void connectionEstablished(QString clientName);
+    void connectionEstablishedFromConnect(QString clientName);
 
-    void connectionClosed(QString ipPort);
+    void transferCancelledFromClient();
+
+
+
+    void connectionClosed(QString clientName);
 
     void messageReceived(const QString &sender, const QString &message);
     // Dosya transferi için yeni sinyaller

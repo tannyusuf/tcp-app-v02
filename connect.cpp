@@ -61,16 +61,16 @@ Connect::Connect(QWidget *parent)
             listenerTh, &QThread::deleteLater);
 
     connect(listener, &Listener::connectionEstablished,
-            this, [=](QString ipPort){
-                emit connectionEstablished(ipPort);
+            this, [=](QString clientName){
+                emit connectionEstablished(clientName);
             });
 
     connect(this, &Connect::tabCreatedSignal,
             listener, &Listener::tabCreatedSlot);
 
     connect(listener, &Listener::deleteTab,
-            this, [=](QString ipPort){
-                emit deleteTab(ipPort);
+            this, [=](QString clientName){
+                emit deleteTab(clientName);
             });
 
     connect(this, &Connect::disconnectRequestedFromMainSignal, listener, &Listener::disconnectRequestedFromMain);
@@ -170,9 +170,9 @@ void Connect::tabCreatedSlot(connectionHandleUi *page)
     emit tabCreatedSignal(page);
 }
 
-void Connect::disconnectRequestedFromMain(QString ipPort)
+void Connect::disconnectRequestedFromMain(QString clientName)
 {
-    emit disconnectRequestedFromMainSignal(ipPort);
+    emit disconnectRequestedFromMainSignal(clientName);
 }
 
 
@@ -215,8 +215,8 @@ void Connect::on_btnConnect_clicked()
 
 
     connect(worker, &SocketWorker::connectionEstablishedFromConnect,
-            this, [=](QString ipPort){
-                emit connectionEstablishedFromConnect(ipPort);
+            this, [=](QString clientName){
+                emit connectionEstablishedFromConnect(clientName);
                 //qDebug() << "connected:" << ipPort;
             });
 
@@ -224,8 +224,8 @@ void Connect::on_btnConnect_clicked()
             worker, &SocketWorker::tabCreated);
 
     connect(worker, &SocketWorker::connectionClosed,
-            this, [=](QString ipPort){
-                emit deleteTab(ipPort);
+            this, [=](QString clientName){
+                emit deleteTab(clientName);
             });
 
     workerTh->start();

@@ -38,7 +38,7 @@ constexpr auto qt_meta_stringdata_CLASSListenerENDCLASS = QtMocHelpers::stringDa
     "Listener",
     "connectionEstablished",
     "",
-    "ipPort",
+    "clientName",
     "disconnectRequestedFromMainSignal",
     "tabCreatedSignal",
     "connectionHandleUi*",

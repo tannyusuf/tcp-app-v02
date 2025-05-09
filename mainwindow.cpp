@@ -15,27 +15,27 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    connect(connPage, &Connect::connectionEstablished, [this](QString ipPort) {
+    connect(connPage, &Connect::connectionEstablished, [this](QString clientName) {
         // Add new tab
 
-        if(askUserToConfirmConnection(ipPort)){
+        if(askUserToConfirmConnection(clientName)){
             connectionHandleUi* page = new connectionHandleUi();
-            ui->tabWdg->addTab(page, ipPort);  // Removed tabIndex variable since it's unused
+            ui->tabWdg->addTab(page, clientName);  // Removed tabIndex variable since it's unused
             emit tabCreated(page);
         }
 
         else{
-            emit disconnect(ipPort);
+            emit disconnect(clientName);
             connect(this, &MainWindow::disconnect, connPage, &Connect::disconnectRequestedFromMain);
         }
 
     });
 
-    connect(connPage, &Connect::connectionEstablishedFromConnect, [this](QString ipPort) {
+    connect(connPage, &Connect::connectionEstablishedFromConnect, [this](QString clientName) {
         // Add new tab
 
         connectionHandleUi* page = new connectionHandleUi();
-        ui->tabWdg->addTab(page, ipPort);  // Removed tabIndex variable since it's unused
+        ui->tabWdg->addTab(page, clientName);  // Removed tabIndex variable since it's unused
         emit tabCreated(page);
 
     });
@@ -46,8 +46,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, &MainWindow::tabCreated, connPage, &Connect::tabCreatedSlot);
     // Connect tab close signal
     connect(connPage, &Connect::deleteTab,
-            this, [=](QString ipPort){
-        removeTabByName(ui->tabWdg, ipPort);
+            this, [=](QString clientName){
+        removeTabByName(ui->tabWdg, clientName);
             });
 
 }
@@ -101,12 +101,12 @@ QString MainWindow::getUserInput(QWidget *parent)
 
 }
 
-bool MainWindow::askUserToConfirmConnection(QString ipPort, QWidget *parent)
+bool MainWindow::askUserToConfirmConnection(QString clientName, QWidget *parent)
 {
     QMessageBox::StandardButton reply = QMessageBox::question(parent,
                                                               "Confirm Connection",
                                                               "New connection established with " +
-                                                              ipPort + "\nDo you confirm?",
+                                                              clientName + "\nDo you confirm?",
                                                               QMessageBox::Yes | QMessageBox::No);
 
     return reply == QMessageBox::Yes;

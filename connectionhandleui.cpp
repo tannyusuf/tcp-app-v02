@@ -12,6 +12,7 @@ connectionHandleUi::connectionHandleUi(QWidget *parent)
     ui->setupUi(this);
     ui->lblSending->setVisible(false);
     ui->lblSendingBar->setVisible(false);
+    ui->btnCancel->setVisible(false);
 
 }
 
@@ -28,6 +29,29 @@ void connectionHandleUi::outputMessage(QString outputMessageParam)
 
     ui->lstOutput->addItem(timePrefix + outputMessageParam);
     ui->lstOutput->scrollToBottom();
+
+}
+
+void connectionHandleUi::setFileTransferButtonsVisibleForSending(qint64 bytesSent, qint64 bytesTotal)
+{
+    ui->lblSending->setVisible(true);
+    ui->lblSendingBar->setVisible(true);
+    ui->btnCancel->setVisible(true);
+    ui->lblSending->setText("Sending File");
+
+    ui->lblSendingBar->setRange(0, bytesTotal);
+    ui->lblSendingBar->setValue(bytesSent);
+}
+
+void connectionHandleUi::setFileTransferButtonsVisibleForReceiving(qint64 bytesReceived, qint64 bytesTotal)
+{
+    ui->lblSending->setVisible(true);
+    ui->lblSendingBar->setVisible(true);
+    ui->btnCancel->setVisible(true);
+    ui->lblSending->setText("Receiving File");
+
+    ui->lblSendingBar->setRange(0, bytesTotal);
+    ui->lblSendingBar->setValue(bytesReceived);
 
 }
 
@@ -72,26 +96,61 @@ void connectionHandleUi::on_pushButton_clicked()
 
 void connectionHandleUi::onFileTransferProgress(qint64 bytesSent, qint64 bytesTotal)
 {
+    setFileTransferButtonsVisibleForSending(bytesSent, bytesTotal);
+    ui->btnSelectFile->setEnabled(false);
+    ui->btnCancel->setEnabled(true);
+    ui->btnSendFile->setEnabled(false);
+
 
 }
 
 void connectionHandleUi::onFileReceiveProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
-
+    setFileTransferButtonsVisibleForReceiving(bytesReceived, bytesTotal);
+    ui->btnSelectFile->setEnabled(false);
+    ui->btnCancel->setEnabled(true);
+    ui->btnSendFile->setEnabled(false);
 }
 
 void connectionHandleUi::onFileReceived(const QString &filePath)
 {
-
+    ui->lblSending->setText("File Received!");
+    ui->btnCancel->setEnabled(false);
+    ui->btnSelectFile->setEnabled(true);
+    ui->btnSendFile->setEnabled(true);
 }
 
 void connectionHandleUi::onFileSent()
 {
-
+    ui->lblSending->setText("File Sent!");
+    ui->btnCancel->setEnabled(false);
+    ui->btnSelectFile->setEnabled(true);
+    ui->btnSendFile->setEnabled(true);
 }
 
 void connectionHandleUi::onFileTransferError(const QString &errorMessage)
 {
-
+    ui->lblSending->setText("ERROR!");
+    ui->btnCancel->setEnabled(false);
+    ui->btnSelectFile->setEnabled(true);
+    ui->btnSendFile->setEnabled(true);
 }
+
+
+void connectionHandleUi::on_btnCancel_clicked()
+{
+
+    ui->lblSending->setText("File Transfer Cancelled!");
+    ui->btnCancel->setEnabled(false);
+    ui->btnSelectFile->setEnabled(true);
+    ui->btnSendFile->setEnabled(true);
+    ui->lblSendingBar->setValue(0);
+    emit cancelFileTransferRequested();
+}
+
+
+
+
+
+
 

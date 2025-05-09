@@ -49,9 +49,9 @@ void Listener::tabCreatedSlot(connectionHandleUi *page)
     emit tabCreatedSignal(page);
 }
 
-void Listener::disconnectRequestedFromMain(QString ipPort)
+void Listener::disconnectRequestedFromMain(QString clientName)
 {
-    emit disconnectRequestedFromMainSignal(ipPort);
+    emit disconnectRequestedFromMainSignal(clientName);
 }
 
 
@@ -86,16 +86,16 @@ void Listener::onNewConnection()
                 worker, &SocketWorker::startProcessing);
 
         connect(worker, &SocketWorker::connectionEstablished,
-                        this, [=](QString ipPort){
-            emit connectionEstablished(ipPort);
+                        this, [=](QString clientName){
+            emit connectionEstablished(clientName);
         });
         connect(this, &Listener::tabCreatedSignal,
                 worker, &SocketWorker::tabCreated);
 
 
         connect(worker, &SocketWorker::connectionClosed,
-                this, [=](QString ipPort){
-                    emit deleteTab(ipPort);
+                this, [=](QString clientName){
+                    emit deleteTab(clientName);
                 });
 
         connect(this, &Listener::disconnectRequestedFromMainSignal, worker, &SocketWorker::disconnectRequestFromMain);

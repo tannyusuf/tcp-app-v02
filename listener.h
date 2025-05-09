@@ -22,11 +22,11 @@ private:
     QList<QThread*> activeWorkerThreads;
 
 signals:
-    void connectionEstablished(QString ipPort);
-    void disconnectRequestedFromMainSignal(QString ipPort);
+    void connectionEstablished(QString clientName);
+    void disconnectRequestedFromMainSignal(QString clientName);
 
     void tabCreatedSignal(connectionHandleUi* page);
-    void deleteTab(QString ipPort);
+    void deleteTab(QString clientName);
 
 
 public slots:
@@ -34,7 +34,7 @@ public slots:
     void stopListening();
 
     void tabCreatedSlot(connectionHandleUi* page);
-    void disconnectRequestedFromMain(QString ipPort);
+    void disconnectRequestedFromMain(QString clientName);
 
 private slots:
     void onNewConnection();
