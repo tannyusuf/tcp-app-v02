@@ -95,16 +95,17 @@ signals:
 
     void transferCancelledFromClient();
 
+    void transferBeginInfo(const QString &filePath);
 
 
     void connectionClosed(QString clientName);
 
     void messageReceived(const QString &sender, const QString &message);
     // Dosya transferi için yeni sinyaller
-    void fileTransferProgress(qint64 bytesSent, qint64 bytesTotal);
-    void fileReceiveProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void fileTransferProgress(qint64 bytesSent, qint64 bytesTotal, const QString &filePath);
+    void fileReceiveProgress(qint64 bytesReceived, qint64 bytesTotal, const QString &filePath);
     void fileReceived(const QString &filePath);
-    void fileSent();
+    void fileSent(const QString &filePath);
     void fileTransferError(const QString &errorMessage);
 };
 

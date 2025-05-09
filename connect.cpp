@@ -8,6 +8,8 @@ Connect::Connect(QWidget *parent)
 {
     ui->setupUi(this);
 
+    //setMovable(true);
+
 
     /*
      * Scanner starts
@@ -63,6 +65,9 @@ Connect::Connect(QWidget *parent)
     connect(listener, &Listener::connectionEstablished,
             this, [=](QString clientName){
                 emit connectionEstablished(clientName);
+                outputMessageParam = QString("New Connection with %1").arg(clientName);
+                outputMessage(outputMessageParam);
+
             });
 
     connect(this, &Connect::tabCreatedSignal,
@@ -217,6 +222,8 @@ void Connect::on_btnConnect_clicked()
     connect(worker, &SocketWorker::connectionEstablishedFromConnect,
             this, [=](QString clientName){
                 emit connectionEstablishedFromConnect(clientName);
+                outputMessageParam = QString("New Connection with %1").arg(clientName);
+                outputMessage(outputMessageParam);
                 //qDebug() << "connected:" << ipPort;
             });
 
@@ -226,6 +233,8 @@ void Connect::on_btnConnect_clicked()
     connect(worker, &SocketWorker::connectionClosed,
             this, [=](QString clientName){
                 emit deleteTab(clientName);
+            outputMessageParam = QString("Connection closed with %1").arg(clientName);
+            outputMessage(outputMessageParam);
             });
 
     workerTh->start();
@@ -238,6 +247,9 @@ void Connect::on_btnListen_clicked()
     emit btnListen_clicked();
     ui->btnDontListen->setEnabled(true);
     ui->btnListen->setEnabled(false);
+
+    outputMessageParam = "Listening for new connections.";
+    outputMessage(outputMessageParam);
 }
 
 
@@ -247,5 +259,8 @@ void Connect::on_btnDontListen_clicked()
     emit btnDontListen_clicked();
     ui->btnListen->setEnabled(true);
     ui->btnDontListen->setEnabled(false);
+
+    outputMessageParam = "Not listening for new connections.";
+    outputMessage(outputMessageParam);
 }
 

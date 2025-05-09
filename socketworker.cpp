@@ -79,6 +79,7 @@ void SocketWorker::tabCreated(connectionHandleUi *page)
     connect(this, &SocketWorker::fileTransferError,
             page, &connectionHandleUi::onFileTransferError, Qt::QueuedConnection);
 
+    connect(this, &SocketWorker::transferBeginInfo, page, &connectionHandleUi::transferBeginInfo);
 
 
 
@@ -157,6 +158,7 @@ void SocketWorker::sendFile(const QString &filePath)
 
     // FILE_BEGIN komutu, ardından dosya adı ve boyutu
     QString fileHeader = QString("FILE_BEGIN:%1:%2\n").arg(fileName).arg(m_fileSize);
+    emit transferBeginInfo(fileName);
     m_socket->write(fileHeader.toUtf8());
     m_socket->flush();
 
@@ -199,7 +201,7 @@ void SocketWorker::sendFileChunk()
         m_socket->flush();
         m_outgoingFile.close();
         m_sendingFile = false;
-        emit fileSent();
+        emit fileSent(m_currentFileName);
         return;
     }
 
@@ -209,9 +211,10 @@ void SocketWorker::sendFileChunk()
     m_socket->write(buffer);
     m_socket->flush();
 
+
     // Dosya gönderim durumunu güncelle
     qint64 bytesSent = m_outgoingFile.pos();
-    emit fileTransferProgress(bytesSent, m_fileSize);
+    emit fileTransferProgress(bytesSent, m_fileSize, m_currentFileName);
 
     // Eğer hala gönderecek veri varsa, bir sonraki parçayı göndermek için
     // QTimer kullanarak kuyruk oluşturma
@@ -335,6 +338,7 @@ void SocketWorker::handleData()
                     m_fileSize = parts[2].toLongLong();
                     m_bytesReceived = 0;
                     m_receivingFile = true;
+                    emit transferBeginInfo(m_currentFileName);
 
 
 
@@ -388,7 +392,7 @@ void SocketWorker::handleData()
                         if (buffer.size() == dataSize) {
                             m_incomingFile.write(buffer);
                             m_bytesReceived += buffer.size();
-                            emit fileReceiveProgress(m_bytesReceived, m_fileSize);
+                            emit fileReceiveProgress(m_bytesReceived, m_fileSize, m_currentFileName);
                         }
                         else {
                             // Veri eksik
@@ -444,7 +448,7 @@ void SocketWorker::handleData()
                 if (m_sendingFile) {
                     m_outgoingFile.close();
                     m_sendingFile = false;
-                    emit fileSent();
+                    emit fileSent(m_currentFileName);
                 }
             }
             else {

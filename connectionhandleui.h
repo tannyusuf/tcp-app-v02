@@ -29,13 +29,15 @@ private slots:
 
 
 public slots:
-    void onFileTransferProgress(qint64 bytesSent, qint64 bytesTotal);
-    void onFileReceiveProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void onFileTransferProgress(qint64 bytesSent, qint64 bytesTotal, const QString &filePath);
+    void onFileReceiveProgress(qint64 bytesReceived, qint64 bytesTotal, const QString &filePath);
     void onFileReceived(const QString &filePath);
-    void onFileSent();
+    void onFileSent(const QString &filePath);
     void onFileTransferError(const QString &errorMessage);
 
     void on_btnCancel_clicked();
+
+    void transferBeginInfo(const QString &fileName);
 
 
 private:

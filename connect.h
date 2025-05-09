@@ -22,6 +22,9 @@ public:
     explicit Connect(QWidget *parent = nullptr);
     ~Connect();
 
+
+
+
 private:
     Ui::Connect *ui;
 
@@ -45,6 +48,11 @@ private:
 
     Listener* listener;
     QThread* listenerTh;
+
+
+
+
+
 
 
 
