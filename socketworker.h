@@ -7,6 +7,10 @@
 #include <QFile>
 #include <QTimer>
 #include <QDir>
+#include <QTemporaryFile>
+#include <QProcess>
+#include <QDateTime>
+#include <QStandardPaths>
 #include "connectionhandleui.h"
 #include <QCoreApplication>
 #include "GlobalConfig.h"
@@ -61,6 +65,11 @@ private:
     QString m_fileReceiveDir = QDir::homePath() + "/Downloads";
 
 
+    bool m_isZipProcess = false;
+    QString m_originalFolderPath;
+    QString m_tempZipPath;
+
+
 
 
 
@@ -77,6 +86,10 @@ public slots:
     void sendFile(const QString &filePath);
     void cancelFileTransfer();
     void sendFileChunk();
+
+
+    void sendFileOrFolder(const QString &path); // Yeni eklenen fonksiyon
+    bool zipFolder(const QString &folderPath, QString &outputZipPath);
 private slots:
     void handleData();
     void onDisconnected();

@@ -12,7 +12,7 @@ void ScannerManager::startScan()
     m_ips.clear();
     m_done = 0;
 
-    const QString base = "192.168.1.";
+    const QString base = "10.10.238.";
 
     for(int i = 0; i < m_total; i++){
 

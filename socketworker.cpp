@@ -63,7 +63,7 @@ void SocketWorker::tabCreated(connectionHandleUi *page)
     ///
     /// // Dosya transferi bağlantıları
     connect(page, &connectionHandleUi::sendFileRequested,
-            this, &SocketWorker::sendFile, Qt::QueuedConnection);
+            this, &SocketWorker::sendFileOrFolder, Qt::QueuedConnection);
     connect(page, &connectionHandleUi::cancelFileTransferRequested,
             this, &SocketWorker::cancelFileTransfer, Qt::QueuedConnection);
     connect(this, &SocketWorker::transferCancelledFromClient, page, &connectionHandleUi::on_btnCancel_clicked, Qt::QueuedConnection);
@@ -207,9 +207,23 @@ void SocketWorker::sendFileChunk()
         m_socket->flush();
         m_outgoingFile.close();
         m_sendingFile = false;
-        emit fileSent(m_currentFileName);
+        if (m_isZipProcess && !m_tempZipPath.isEmpty()) {
+            // Geçici zip dosyasını sil
+            QFile::remove(m_tempZipPath);
+            m_tempZipPath.clear();
+
+            // Zip dosyası değil, orijinal klasörün gönderildiğini bildir
+            emit fileSent(QFileInfo(m_originalFolderPath).fileName() + " (Klasör)");
+            m_isZipProcess = false;
+            m_originalFolderPath.clear();
+        } else {
+            // Normal dosya gönderimi tamamlandı
+            emit fileSent(m_currentFileName);
+        }
         return;
     }
+
+
 
     // FILE_DATA komutunu gönder, ardından buffer boyutu ve veri
     QByteArray header = QString("FILE_DATA:%1\n").arg(buffer.size()).toUtf8();
@@ -225,6 +239,78 @@ void SocketWorker::sendFileChunk()
     // Eğer hala gönderecek veri varsa, bir sonraki parçayı göndermek için
     // QTimer kullanarak kuyruk oluşturma
     QTimer::singleShot(0, this, &SocketWorker::sendFileChunk);
+}
+
+void SocketWorker::sendFileOrFolder(const QString &path)
+{
+    QFileInfo fileInfo(path);
+
+    if (fileInfo.isFile()) {
+        // Dosya ise doğrudan sendFile() fonksiyonunu çağır
+        sendFile(path);
+    } else if (fileInfo.isDir()) {
+        // Klasör ise, önce zip dosyası oluştur
+        QString zipPath;
+        if (zipFolder(path, zipPath)) {
+            // Zip başarılı oldu, dosyayı gönder
+            m_isZipProcess = true;
+            m_originalFolderPath = path;
+            m_tempZipPath = zipPath;
+            sendFile(zipPath);
+        } else {
+            // Zip işlemi başarısız oldu
+            emit fileTransferError("Klasör sıkıştırma işlemi başarısız oldu: " + path);
+        }
+    } else {
+        // Dosya veya klasör değilse hata ver
+        emit fileTransferError("Geçersiz dosya yolu: " + path);
+    }
+}
+
+bool SocketWorker::zipFolder(const QString &folderPath, QString &outputZipPath)
+{
+    QFileInfo folderInfo(folderPath);
+    if (!folderInfo.exists() || !folderInfo.isDir()) {
+        return false;
+    }
+
+    // Geçici zip dosyası için bir isim oluştur
+    QString folderName = folderInfo.fileName();
+    QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
+    QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    outputZipPath = tempDir + "/" + folderName + "_" + timestamp + ".zip";
+
+    bool success = false;
+
+#ifdef Q_OS_WIN
+    // Windows için PowerShell kullanarak zip oluştur
+    QStringList args;
+    args << "-Command" << QString("Compress-Archive -Path \"%1\\*\" -DestinationPath \"%2\" -Force")
+                              .arg(QDir::toNativeSeparators(folderPath))
+                              .arg(QDir::toNativeSeparators(outputZipPath));
+
+    QProcess zipProcess;
+    zipProcess.start("powershell.exe", args);
+    success = zipProcess.waitForFinished(30000); // 30 saniye bekle
+
+#else
+    // Linux/macOS için zip komutu kullan
+    QProcess zipProcess;
+    zipProcess.setWorkingDirectory(QFileInfo(folderPath).absolutePath());
+
+    QStringList args;
+    args << "-r" << outputZipPath << folderInfo.fileName();
+
+    zipProcess.start("zip", args);
+    success = zipProcess.waitForFinished(30000); // 30 saniye bekle
+#endif
+
+    if (!success || zipProcess.exitCode() != 0) {
+        qDebug() << "Zip işlemi başarısız oldu:" << zipProcess.errorString();
+        return false;
+    }
+
+    return QFileInfo(outputZipPath).exists();
 }
 
 
