@@ -168,6 +168,19 @@ void connectionHandleUi::transferBeginInfo(const QString &fileName)
 
 
 
+void connectionHandleUi::on_btnSelectFolder_clicked()
+{
+    QString dir = QFileDialog::getExistingDirectory(this,
+                                                    tr("Select Folder"),
+                                                    QDir::currentPath(),
+                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
+    if (!dir.isEmpty()) {
+        ui->lineEditPath->setText(dir);
+        ui->btnSendFile->setEnabled(true);
 
+        outputMessageParam = QString("Folder Selected: %1").arg(dir);
+        outputMessage(outputMessageParam);
+    }
+}
 

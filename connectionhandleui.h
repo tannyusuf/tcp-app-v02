@@ -28,6 +28,8 @@ private slots:
 
 
 
+    void on_btnSelectFolder_clicked();
+
 public slots:
     void onFileTransferProgress(qint64 bytesSent, qint64 bytesTotal, const QString &filePath);
     void onFileReceiveProgress(qint64 bytesReceived, qint64 bytesTotal, const QString &filePath);

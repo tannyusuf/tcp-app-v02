@@ -129,6 +129,12 @@ void SocketWorker::receiveIpPort(QString ip, quint16 port)
 
 void SocketWorker::sendFile(const QString &filePath)
 {
+    ///file mı folder mı kontrol et
+    /// file ise bu fonksiyon değilse zipleme fonksiyonu.
+    /// zipledikten sonra send file cağır.
+
+
+
     // Bağlantı durumunu kontrol et
     if (!m_socket || m_socket->state() != QAbstractSocket::ConnectedState) {
         emit fileTransferError("Bağlantı yok");
@@ -296,12 +302,14 @@ void SocketWorker::handleData()
                 m_state = HandshakeState::onHost_sendingOK;
                 qDebug() << "Server: Received OK";
 
+                emit connectionEstablished(m_clientName);
+
                 m_socket->write("OK\n");
                 m_socket->flush();
                 m_state = HandshakeState::onHost_completed;
                 qDebug() << "Server: Sent OK";
 
-                emit connectionEstablished(m_clientName);
+                //OK BASILINCA WRİTE OK YAZDIR!!!
             }
             else {
                 m_socket->write("ERR\n");
@@ -316,7 +324,7 @@ void SocketWorker::handleData()
                 // Client davranışı
                 m_state = HandshakeState::onClient_completed;
                 qDebug() << "Client: Received OK";
-                emit connectionEstablished(m_clientName);
+                //semit connectionEstablished(m_clientName);
                 emit connectionEstablishedFromConnect(m_clientName);
             }
             else {
@@ -328,7 +336,9 @@ void SocketWorker::handleData()
             break;
 
         case HandshakeState::onHost_completed:
+            //emit connectionEstablished(m_clientName);
         case HandshakeState::onClient_completed:
+            //emit connectionEstablishedFromConnect(m_clientName);
             // Dosya transferi komutları kontrolü
             if (line.startsWith("FILE_BEGIN:")) {
                 // Yeni bir dosya transferi başlıyor
@@ -377,6 +387,8 @@ void SocketWorker::handleData()
             }
             else if (line.startsWith("FILE_DATA:")) {
                 if (m_receivingFile) {
+
+                    qDebug() << "Socket thread " << m_socket->thread();
                     // Veri parçası geliyor
                     QStringList parts = line.split(":");
                     if (parts.size() >= 2) {
